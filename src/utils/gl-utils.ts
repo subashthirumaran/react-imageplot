@@ -71,6 +71,7 @@ const getFragmentShader = function (obj: any) {
     fragShader = fragShader.replace('#define SELECTING\n', '');
     fragShader = fragShader.replace('N_TEXTURES', textures.length);
     fragShader = fragShader.replace('TEXTURE_LOOKUP_TREE', tree);
+    console.log(fragShader, textures);
     return fragShader;
   }
 };

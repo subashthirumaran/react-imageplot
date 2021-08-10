@@ -5,16 +5,16 @@ import { buildGroups, buildPlotData } from './utils/plot-utils';
 import { TrackballControls, PerspectiveCamera } from '@react-three/drei';
 
 const Box: FC<any> = () => {
-  const { scene, size, camera } = useThree((state) => state);
-
+  const { scene, size, camera, gl } = useThree((state) => state);
   const initFrame = async () => {
     const imagePlot = await buildPlotData();
     const group = buildGroups(imagePlot, size);
+    console.log(group);
     scene.add(group);
   };
 
   useEffect(() => {
-    scene.background = new THREE.Color(0x111111);
+    scene.background = new THREE.Color(0xffffff);
     camera.position.set(0, 0, 2);
     camera.lookAt(0, 0, 2);
     initFrame();

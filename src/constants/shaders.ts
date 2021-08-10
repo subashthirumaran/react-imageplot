@@ -1,4 +1,5 @@
-export const VERTEX_SHADER = `/**
+export const VERTEX_SHADER = `
+/**
 * The vertex shader's main() function must define \`gl_Position\`,
 * which describes the position of each vertex in screen coordinates.
 *
@@ -120,7 +121,8 @@ void main() {
 }
 `;
 
-export const FRAGMENT_SHADER = `/**
+export const FRAGMENT_SHADER = `
+/**
 * The fragment shader's main() function must define \`gl_FragColor\`,
 * which describes the pixel color of each pixel on the screen.
 *
