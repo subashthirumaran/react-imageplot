@@ -169,7 +169,7 @@ export const getCellIterators = function (n: number) {
 const getTextures = function (obj: any) {
   var textures = [];
   for (var i = obj.startIdx; i <= obj.endIdx; i++) {
-    var tex = null && getTexture(obj.textures[i].canvas);
+    var tex = getTexture(obj.textures[i].canvas);
     textures.push(tex);
   }
   return textures;

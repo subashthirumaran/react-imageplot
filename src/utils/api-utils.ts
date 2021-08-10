@@ -5,8 +5,8 @@ const instance = axios.create({
   timeout: 1000,
 });
 
-export const loadFile = async (path: string) => {
-  const response = await instance.get(path);
+export const loadFile = async (path: string, options = {}) => {
+  const response = await instance.get(path, options);
   // console.log('fetching ' + path + ': ', response);
   return response.data;
 };

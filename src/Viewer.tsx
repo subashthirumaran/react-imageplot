@@ -1,11 +1,11 @@
 import React, { useState, FC, useEffect, createElement } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, useThree, Vector3 } from '@react-three/fiber';
 import * as THREE from 'three';
 import { buildGroups, buildPlotData } from './utils/plot-utils';
-import { TrackballControls } from '@react-three/drei';
+import { TrackballControls, PerspectiveCamera } from '@react-three/drei';
 
 const Box: FC<any> = () => {
-  const { scene, size } = useThree((state) => state);
+  const { scene, size, camera } = useThree((state) => state);
 
   const initFrame = async () => {
     const imagePlot = await buildPlotData();
@@ -14,6 +14,9 @@ const Box: FC<any> = () => {
   };
 
   useEffect(() => {
+    scene.background = new THREE.Color(0x111111);
+    camera.position.set(0, 0, 2);
+    camera.lookAt(0, 0, 2);
     initFrame();
   }, []);
 
@@ -22,16 +25,24 @@ const Box: FC<any> = () => {
 
 const Viewer = () => {
   return (
-    <Canvas>
-      <TrackballControls
-        mouseButtons={{
-          LEFT: THREE.MOUSE.PAN,
-          //@ts-expect-error
-          MIDDLE: THREE.MOUSE.ZOOM,
-          RIGHT: THREE.MOUSE.ROTATE,
-        }}
-      />
-      <Box />
+    <Canvas
+      gl={{
+        antialias: true,
+        autoClear: false,
+        toneMapping: THREE.ReinhardToneMapping,
+      }}
+    >
+      <PerspectiveCamera fov={75} near={0.001} far={10}>
+        <TrackballControls
+          mouseButtons={{
+            LEFT: THREE.MOUSE.PAN,
+            //@ts-expect-error
+            MIDDLE: THREE.MOUSE.ZOOM,
+            RIGHT: THREE.MOUSE.ROTATE,
+          }}
+        />
+        <Box />
+      </PerspectiveCamera>
     </Canvas>
   );
 };

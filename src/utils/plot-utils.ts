@@ -17,7 +17,6 @@ import {
   createElem,
   getGroupAttributes,
 } from './computation-utils';
-import { NumberLiteralType } from 'typescript';
 
 const loadAtlasImages = async (imagePlot: ImagePlot) => {
   const atlases: PlotAtlas[] = flatten(
@@ -28,11 +27,9 @@ const loadAtlasImages = async (imagePlot: ImagePlot) => {
     completed = 0;
   await Promise.all(
     atlases.map(async (atlas) => {
-      const imageResponse = await loadFile(atlas.url);
+      const imageResponse = await loadFile(atlas.url, { responseType: 'blob' });
       atlas.image = new Image();
-      atlas.image.src = window.URL.createObjectURL(
-        new Blob(imageResponse.data)
-      );
+      atlas.image.src = window.URL.createObjectURL(imageResponse);
       progress = (++completed / atlases.length) * 100;
       imagePlot.textures[atlas.textureId].ctx.drawImage(
         atlas.image,
@@ -191,7 +188,7 @@ export const buildGroups = (
     geometry.setAttribute('clusterSelected', attrs.clusterSelected);
     geometry.setAttribute('textureIndex', attrs.textureIndex);
     geometry.setDrawRange(0, meshCells.length); // points not rendered unless draw range is specified
-    var material = getShaderMaterial({
+    const material = getShaderMaterial({
       firstTex: attrs.texStartIdx,
       textures: attrs.textures,
       useColor: false,
@@ -199,7 +196,7 @@ export const buildGroups = (
       canvasSize,
     });
     material.transparent = true;
-    var mesh = new THREE.Mesh(geometry, material);
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     group.add(mesh);
   }
