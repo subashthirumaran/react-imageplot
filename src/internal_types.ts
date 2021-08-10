@@ -1,11 +1,16 @@
 export interface ImagePlot {
+  sizes: {
+    cell: number;
+    lodCell: number;
+    atlas: number;
+    texture: number;
+    lodTexture: number;
+  };
   center: Coordinates2D;
   atlasCount: number;
   textureCount: number;
   atlasesPerTex: number;
   textures: PlotTexture[];
-  atlasSize: number;
-  textureSize: number;
   cells: PlotCell[];
   boundingBox: BoundingBox;
   glLimits: {
@@ -22,6 +27,7 @@ export interface PlotAtlas {
   url: string;
   progress: number;
   id: number;
+  positionOffsetInTexture: Coordinates2D;
 }
 
 export interface PlotTexture {
@@ -29,6 +35,8 @@ export interface PlotTexture {
   atlasProgress: number;
   id: number;
   maxAtlasCount: number;
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
 }
 
 export interface PlotCell {
@@ -40,6 +48,8 @@ export interface PlotCell {
   globalAtlasIndex: number;
   indexWithinAtlas: number;
   textureIndex: number;
+  indexOfDrawCall: number;
+  indexInDrawCall: number;
 }
 
 export interface Coordinates2D {
