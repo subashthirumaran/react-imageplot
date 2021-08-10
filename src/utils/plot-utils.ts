@@ -1,7 +1,13 @@
 import * as THREE from 'three';
 import { loadFile } from './api-utils';
 import { ImageList, PlotManifest } from '../external_types';
-import { ImagePlot, PlotAtlas, PlotCell, PlotTexture } from '../internal_types';
+import {
+  ImagePlot,
+  PlotAtlas,
+  PlotCell,
+  PlotTexture,
+  Vector2Dimensions,
+} from '../internal_types';
 import { getShaderMaterial, getWebglLimits } from './gl-utils';
 import { flatten, times } from 'lodash';
 import {
@@ -11,8 +17,8 @@ import {
   createElem,
   getGroupAttributes,
 } from './computation-utils';
+import { NumberLiteralType } from 'typescript';
 
-//implement memoizing for utils
 const loadAtlasImages = async (imagePlot: ImagePlot) => {
   const atlases: PlotAtlas[] = flatten(
     imagePlot.textures.map((tex: PlotTexture) => tex.atlases)
@@ -22,16 +28,12 @@ const loadAtlasImages = async (imagePlot: ImagePlot) => {
     completed = 0;
   await Promise.all(
     atlases.map(async (atlas) => {
-      console.log('start');
-      console.time(atlas.url);
       const imageResponse = await loadFile(atlas.url);
       atlas.image = new Image();
       atlas.image.src = window.URL.createObjectURL(
         new Blob(imageResponse.data)
       );
       progress = (++completed / atlases.length) * 100;
-      console.log(progress);
-      console.timeEnd(atlas.url);
       imagePlot.textures[atlas.textureId].ctx.drawImage(
         atlas.image,
         atlas.positionOffsetInTexture.x,
@@ -160,7 +162,10 @@ export const buildPlotData = async () => {
   return imagePlot;
 };
 
-export const buildGroups = (imagePlot: ImagePlot) => {
+export const buildGroups = (
+  imagePlot: ImagePlot,
+  canvasSize: Vector2Dimensions
+) => {
   const drawCalls: PlotCell[][] = [];
   const group = new THREE.Group();
   imagePlot.cells.forEach((cell) => {
@@ -170,7 +175,7 @@ export const buildGroups = (imagePlot: ImagePlot) => {
     drawCalls[cell.indexOfDrawCall].push(cell);
   });
   for (const meshCells of drawCalls) {
-    const attrs = getGroupAttributes(meshCells, imagePlot),
+    const attrs = getGroupAttributes(meshCells, imagePlot, canvasSize),
       geometry = new THREE.InstancedBufferGeometry();
     geometry.setIndex([0, 1, 2, 2, 3, 0]);
     geometry.setAttribute('position', attrs.position);
@@ -191,6 +196,7 @@ export const buildGroups = (imagePlot: ImagePlot) => {
       textures: attrs.textures,
       useColor: false,
       sizes: imagePlot.sizes,
+      canvasSize,
     });
     material.transparent = true;
     var mesh = new THREE.Mesh(geometry, material);

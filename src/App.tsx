@@ -3,7 +3,7 @@ import Viewer from './Viewer';
 
 function App() {
   return (
-    <div className='App'>
+    <div className='canvas-holder'>
       <Viewer />
     </div>
   );

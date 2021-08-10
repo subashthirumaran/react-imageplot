@@ -57,6 +57,11 @@ export interface Coordinates2D {
   y: number;
 }
 
+export interface Vector2Dimensions {
+  width: number;
+  height: number;
+}
+
 export type Coordinates3D = Coordinates2D & { z: number };
 
 export interface BoundingBox {

@@ -1,3 +1,7 @@
-.App {
-  text-align: center;
+html,
+body,
+#root,
+.canvas-holder {
+  height: 100%;
+  width: 100%;
 }

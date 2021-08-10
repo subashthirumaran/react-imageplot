@@ -3,6 +3,7 @@ import {
   Coordinates2D,
   ImagePlot,
   PlotCell,
+  Vector2Dimensions,
 } from '../internal_types';
 import * as THREE from 'three';
 
@@ -30,7 +31,8 @@ export const getBoundingBox = (bb: BoundingBox, coordinates: Coordinates2D) => {
 
 export const getGroupAttributes = function (
   cells: PlotCell[],
-  imagePlot: ImagePlot
+  imagePlot: ImagePlot,
+  canvasSize: Vector2Dimensions
 ) {
   const hexColor = new THREE.Color();
   var it = getCellIterators(cells.length);
@@ -114,6 +116,7 @@ export const getGroupAttributes = function (
       startIdx: texIndices.first,
       endIdx: texIndices.last,
       textures: imagePlot.textures,
+      canvasSize,
     }),
     texStartIdx: texIndices.first,
     texEndIdx: texIndices.last,

@@ -2,14 +2,14 @@ import React, { useState, FC, useEffect, createElement } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { buildGroups, buildPlotData } from './utils/plot-utils';
+import { TrackballControls } from '@react-three/drei';
 
 const Box: FC<any> = () => {
-  const [plot, setPlot] = useState({});
-  const scene = useThree((state) => state.scene);
+  const { scene, size } = useThree((state) => state);
 
   const initFrame = async () => {
     const imagePlot = await buildPlotData();
-    const group = buildGroups(imagePlot);
+    const group = buildGroups(imagePlot, size);
     scene.add(group);
   };
 
@@ -23,6 +23,14 @@ const Box: FC<any> = () => {
 const Viewer = () => {
   return (
     <Canvas>
+      <TrackballControls
+        mouseButtons={{
+          LEFT: THREE.MOUSE.PAN,
+          //@ts-expect-error
+          MIDDLE: THREE.MOUSE.ZOOM,
+          RIGHT: THREE.MOUSE.ROTATE,
+        }}
+      />
       <Box />
     </Canvas>
   );
