@@ -14,7 +14,7 @@ const Box: FC<any> = () => {
   };
 
   useEffect(() => {
-    scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color(0x111111);
     camera.position.set(0, 0, 2);
     camera.lookAt(0, 0, 2);
     initFrame();

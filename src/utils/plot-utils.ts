@@ -1,5 +1,5 @@
+import { flatten, times } from 'lodash';
 import * as THREE from 'three';
-import { loadFile } from './api-utils';
 import { ImageList, PlotManifest } from '../external_types';
 import {
   ImagePlot,
@@ -8,31 +8,35 @@ import {
   PlotTexture,
   Vector2Dimensions,
 } from '../internal_types';
-import { getShaderMaterial, getWebglLimits } from './gl-utils';
-import { flatten, times } from 'lodash';
+import { loadFile } from './api-utils';
 import {
+  createElem,
   DEFAULT_BOUNDING_BOX,
   getAtlasOffset,
   getBoundingBox,
-  createElem,
   getGroupAttributes,
 } from './computation-utils';
+import { getShaderMaterial, getWebglLimits } from './gl-utils';
+
+const loadBlobToImage = (imageElement: HTMLImageElement, blob: Blob) => {
+  return new Promise((resolve, reject) => {
+    imageElement.onload = () => resolve(imageElement);
+    imageElement.onerror = reject;
+    imageElement.src = window.URL.createObjectURL(blob);
+  });
+};
 
 const loadAtlasImages = async (imagePlot: ImagePlot) => {
   const atlases: PlotAtlas[] = flatten(
     imagePlot.textures.map((tex: PlotTexture) => tex.atlases)
   );
 
-  var progress = 0,
-    completed = 0;
   await Promise.all(
-    atlases.map(async (atlas) => {
+    atlases.map(async atlas => {
       const imageResponse = await loadFile(atlas.url, { responseType: 'blob' });
-      atlas.image = new Image();
-      atlas.image.src = window.URL.createObjectURL(imageResponse);
-      progress = (++completed / atlases.length) * 100;
+      await loadBlobToImage(atlas.image, imageResponse);
       imagePlot.textures[atlas.textureId].ctx.drawImage(
-        atlas.image,
+        atlas.image as CanvasImageSource,
         atlas.positionOffsetInTexture.x,
         atlas.positionOffsetInTexture.y,
         imagePlot.sizes.atlas,
@@ -69,7 +73,7 @@ export const buildPlotData = async () => {
 
   // build textures
   var atlasCount = 0;
-  times(imagePlot.textureCount, (textureIndex) => {
+  times(imagePlot.textureCount, textureIndex => {
     const canvas = createElem('canvas', {
       width: imagePlot.sizes.texture,
       height: imagePlot.sizes.texture,
@@ -87,8 +91,9 @@ export const buildPlotData = async () => {
           ? imagePlot.atlasesPerTex
           : imagePlot.atlasCount % imagePlot.atlasesPerTex,
     };
-    times(texture.maxAtlasCount, (atlasIndex) => {
+    times(texture.maxAtlasCount, atlasIndex => {
       const atlas: PlotAtlas = {
+        image: new Image(),
         textureId: textureIndex,
         url: manifest.atlas_dir + '/atlas-' + atlasIndex + '.jpg',
         progress: 0,
@@ -110,8 +115,8 @@ export const buildPlotData = async () => {
 
   // build cells
   var globalCellIndex = 0;
-  times(imagePlot.atlasCount, (atlasIndex) => {
-    times(imageList.cell_sizes[atlasIndex].length, (cellAtlasIndex) => {
+  times(imagePlot.atlasCount, atlasIndex => {
+    times(imageList.cell_sizes[atlasIndex].length, cellAtlasIndex => {
       const size = imageList.cell_sizes[atlasIndex][cellAtlasIndex],
         atlasPosition = imageList.atlas.positions[atlasIndex][cellAtlasIndex],
         atlasOffset = getAtlasOffset(
@@ -122,7 +127,7 @@ export const buildPlotData = async () => {
         positionIn3d = {
           x: layout[globalCellIndex][0],
           y: layout[globalCellIndex][1],
-          z: layout[globalCellIndex][2] || null,
+          z: layout[globalCellIndex][2] || 0,
         };
 
       const cell: PlotCell = {
@@ -165,7 +170,7 @@ export const buildGroups = (
 ) => {
   const drawCalls: PlotCell[][] = [];
   const group = new THREE.Group();
-  imagePlot.cells.forEach((cell) => {
+  imagePlot.cells.forEach(cell => {
     if (!drawCalls[cell.indexOfDrawCall]) {
       drawCalls[cell.indexOfDrawCall] = [];
     }

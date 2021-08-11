@@ -23,7 +23,7 @@ export interface ImagePlot {
 
 export interface PlotAtlas {
   textureId: number;
-  image?: HTMLImageElement;
+  image: HTMLImageElement;
   url: string;
   progress: number;
   id: number;

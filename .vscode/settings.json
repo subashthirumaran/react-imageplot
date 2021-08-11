@@ -1,0 +1,11 @@
+{
+  "prettier.eslintIntegration": true,
+  "editor.formatonSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true
+  },
+  "prettier.singleQuote": true,
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
