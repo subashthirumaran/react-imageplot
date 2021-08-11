@@ -1,5 +1,5 @@
-import { flatten, times } from 'lodash';
-import * as THREE from 'three';
+import { flatten, omit, times } from 'lodash';
+import { BufferAttribute } from 'three';
 import { ImageList, PlotManifest } from '../external_types';
 import {
   ImagePlot,
@@ -169,7 +169,6 @@ export const buildGroups = (
   canvasSize: Vector2Dimensions
 ) => {
   const drawCalls: PlotCell[][] = [];
-  const group = new THREE.Group();
   imagePlot.cells.forEach(cell => {
     if (!drawCalls[cell.indexOfDrawCall]) {
       drawCalls[cell.indexOfDrawCall] = [];
@@ -178,31 +177,31 @@ export const buildGroups = (
   });
   const meshes = [];
   for (const meshCells of drawCalls) {
-    const attrs = getGroupAttributes(meshCells, imagePlot, canvasSize),
-      geometry = new THREE.InstancedBufferGeometry();
-    geometry.setIndex([0, 1, 2, 2, 3, 0]);
-    geometry.setAttribute('position', attrs.position);
-    geometry.setAttribute('uv', attrs.uv);
-    geometry.setAttribute('translation', attrs.translation);
-    geometry.setAttribute('targetTranslation', attrs.targetTranslation);
-    geometry.setAttribute('color', attrs.color);
-    geometry.setAttribute('width', attrs.width);
-    geometry.setAttribute('height', attrs.height);
-    geometry.setAttribute('offset', attrs.offset);
-    geometry.setAttribute('opacity', attrs.opacity);
-    geometry.setAttribute('selected', attrs.selected);
-    geometry.setAttribute('clusterSelected', attrs.clusterSelected);
-    geometry.setAttribute('textureIndex', attrs.textureIndex);
-    geometry.setDrawRange(0, meshCells.length); // points not rendered unless draw range is specified
-    const material = getShaderMaterial({
-      firstTex: attrs.texStartIdx,
-      textures: attrs.textures,
-      useColor: false,
-      sizes: imagePlot.sizes,
-      canvasSize,
+    const indexArray = new Uint8Array(6);
+    [0, 1, 2, 2, 3, 0].forEach((n, i) => (indexArray[i] = n));
+
+    const indx = new BufferAttribute(indexArray, 1, true);
+    const attrs = getGroupAttributes(meshCells, imagePlot, canvasSize);
+    const attributes = omit(attrs, ['texStartIdx', 'texEndIdx', 'textures']);
+    for (const attr in attributes) {
+      //@ts-expect-error
+      attributes[attr].onUploadCallback = () => {};
+    }
+    indx.onUploadCallback = () => {};
+    meshes.push({
+      material: getShaderMaterial({
+        firstTex: attrs.texStartIdx,
+        textures: attrs.textures,
+        useColor: false,
+        sizes: imagePlot.sizes,
+        canvasSize,
+      }),
+      geometry: {
+        index: indx,
+        drawRange: { start: 0, count: meshCells.length },
+        attributes: omit(attrs, ['texStartIdx', 'texEndIdx', 'textures']),
+      },
     });
-    material.transparent = true;
-    meshes.push({ geometry, material });
   }
   return meshes;
 };

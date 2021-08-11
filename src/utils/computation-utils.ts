@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import {
   BoundingBox,
   Coordinates2D,
@@ -5,7 +6,6 @@ import {
   PlotCell,
   Vector2Dimensions,
 } from '../internal_types';
-import * as THREE from 'three';
 
 export const DEFAULT_BOUNDING_BOX = (): BoundingBox => ({
   x: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },

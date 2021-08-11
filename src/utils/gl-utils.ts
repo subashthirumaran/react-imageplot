@@ -111,85 +111,70 @@ export const getShaderMaterial = function (obj: any) {
   const fragment = getFragmentShader(obj);
 
   // set the uniforms and the shaders to use
-  return new THREE.RawShaderMaterial({
+  return {
     uniforms: {
       textures: {
-        //@ts-expect-error
         type: 'tv',
         value: obj.textures,
       },
       lodTexture: {
-        //@ts-expect-error
         type: 't',
         value: getCanvas(obj.sizes.lodTexture).texture,
       },
       transitionPercent: {
-        //@ts-expect-error
         type: 'f',
         value: 0,
       },
       scale: {
-        //@ts-expect-error
         type: 'f',
         value: getPointScale(obj.canvasSize, 0.00625),
       },
       targetScale: {
-        //@ts-expect-error
         type: 'f',
         value: getPointScale(obj.canvasSize, 0.00625),
       },
       useColor: {
-        //@ts-expect-error
         type: 'f',
         value: obj.useColor ? 1.0 : 0.0,
       },
       cellAtlasPxPerSide: {
-        //@ts-expect-error
         type: 'f',
         value: obj.sizes.texture,
       },
       lodAtlasPxPerSide: {
-        //@ts-expect-error
         type: 'f',
         value: obj.sizes.lodTexture,
       },
       cellPxHeight: {
-        //@ts-expect-error
         type: 'f',
         value: obj.sizes.cell,
       },
       lodPxHeight: {
-        //@ts-expect-error
         type: 'f',
         value: obj.sizes.lodCell,
       },
       borderWidth: {
-        //@ts-expect-error
         type: 'f',
         value: 0.15,
       },
       selectedBorderColor: {
-        //@ts-expect-error
         type: 'vec3',
         value: new Float32Array([234 / 255, 183 / 255, 85 / 255]),
       },
       clusterBorderColor: {
-        //@ts-expect-error
         type: 'vec3',
         value: new Float32Array([255 / 255, 255 / 255, 255 / 255]),
       },
       display: {
-        //@ts-expect-error
         type: 'f',
         value: 1.0,
       },
       time: {
-        //@ts-expect-error
         type: 'f',
         value: 0.0,
       },
     },
     vertexShader: VERTEX_SHADER,
     fragmentShader: fragment,
-  });
+  };
 };

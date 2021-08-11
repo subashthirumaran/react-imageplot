@@ -26,12 +26,17 @@ const Box: FC<any> = () => {
       {meshes.length && (
         <group>
           {meshes.map((meshData: any, id) => (
-            <mesh
-              key={id}
-              frustumCulled={false}
-              geometry={meshData.geometry}
-              material={meshData.material}
-            ></mesh>
+            <mesh key={id} frustumCulled={false}>
+              <instancedBufferGeometry
+                index={meshData.geometry.index}
+                drawRange={meshData.geometry.drawRange}
+                attributes={meshData.geometry.attributes}
+              ></instancedBufferGeometry>
+              <rawShaderMaterial
+                transparent={true}
+                args={[meshData.material]}
+              />
+            </mesh>
           ))}
         </group>
       )}
