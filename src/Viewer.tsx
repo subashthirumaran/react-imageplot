@@ -1,16 +1,17 @@
-import React, { useState, FC, useEffect, createElement } from 'react';
-import { Canvas, useThree, Vector3 } from '@react-three/fiber';
+import { PerspectiveCamera, TrackballControls } from '@react-three/drei';
+import { Canvas, useThree } from '@react-three/fiber';
+import React, { FC, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { buildGroups, buildPlotData } from './utils/plot-utils';
-import { TrackballControls, PerspectiveCamera } from '@react-three/drei';
 
 const Box: FC<any> = () => {
-  const { scene, size, camera, gl } = useThree((state) => state);
+  const { scene, size, camera } = useThree(state => state);
+  const [meshes, setMeshes] = useState([]);
+
   const initFrame = async () => {
     const imagePlot = await buildPlotData();
     const group = buildGroups(imagePlot, size);
-    console.log(group);
-    scene.add(group);
+    setMeshes(group as any);
   };
 
   useEffect(() => {
@@ -20,7 +21,22 @@ const Box: FC<any> = () => {
     initFrame();
   }, []);
 
-  return null;
+  return (
+    <>
+      {meshes.length && (
+        <group>
+          {meshes.map((meshData: any, id) => (
+            <mesh
+              key={id}
+              frustumCulled={false}
+              geometry={meshData.geometry}
+              material={meshData.material}
+            ></mesh>
+          ))}
+        </group>
+      )}
+    </>
+  );
 };
 
 const Viewer = () => {

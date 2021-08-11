@@ -176,6 +176,7 @@ export const buildGroups = (
     }
     drawCalls[cell.indexOfDrawCall].push(cell);
   });
+  const meshes = [];
   for (const meshCells of drawCalls) {
     const attrs = getGroupAttributes(meshCells, imagePlot, canvasSize),
       geometry = new THREE.InstancedBufferGeometry();
@@ -201,9 +202,7 @@ export const buildGroups = (
       canvasSize,
     });
     material.transparent = true;
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    group.add(mesh);
+    meshes.push({ geometry, material });
   }
-  return group;
+  return meshes;
 };
