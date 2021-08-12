@@ -1,16 +1,18 @@
 import { PerspectiveCamera, TrackballControls } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { ImagePlot } from './internal_types';
+import LODMechanism from './LODMechanism';
 import { buildGroups, buildPlotData } from './utils/plot-utils';
 
-const Box: FC<any> = () => {
+const Box: FC<any> = ({ plotData }) => {
   const { scene, size, camera } = useThree(state => state);
   const [meshes, setMeshes] = useState([]);
+  const groupRef = useRef();
 
   const initFrame = async () => {
-    const imagePlot = await buildPlotData();
-    const group = buildGroups(imagePlot, size);
+    const group = buildGroups(plotData, size);
     setMeshes(group as any);
   };
 
@@ -24,27 +26,41 @@ const Box: FC<any> = () => {
   return (
     <>
       {meshes.length && (
-        <group>
-          {meshes.map((meshData: any, id) => (
-            <mesh key={id} frustumCulled={false}>
-              <instancedBufferGeometry
-                index={meshData.geometry.index}
-                drawRange={meshData.geometry.drawRange}
-                attributes={meshData.geometry.attributes}
-              ></instancedBufferGeometry>
-              <rawShaderMaterial
-                transparent={true}
-                args={[meshData.material]}
-              />
-            </mesh>
-          ))}
-        </group>
+        <>
+          <group ref={groupRef}>
+            {meshes.map((meshData: any, id) => (
+              <mesh key={id} frustumCulled={false}>
+                <instancedBufferGeometry
+                  index={meshData.geometry.index}
+                  drawRange={meshData.geometry.drawRange}
+                  attributes={meshData.geometry.attributes}
+                ></instancedBufferGeometry>
+                <rawShaderMaterial
+                  transparent={true}
+                  args={[meshData.material]}
+                />
+              </mesh>
+            ))}
+          </group>
+          <LODMechanism plotData={plotData} meshGroup={groupRef} />
+        </>
       )}
     </>
   );
 };
 
 const Viewer = () => {
+  const [plotData, setPlotData] = useState<ImagePlot>();
+
+  const loadPlot = async () => {
+    const plot = await buildPlotData();
+    setPlotData(plot);
+  };
+
+  useEffect(() => {
+    loadPlot();
+  }, []);
+
   return (
     <Canvas
       gl={{
@@ -62,7 +78,7 @@ const Viewer = () => {
             RIGHT: THREE.MOUSE.ROTATE,
           }}
         />
-        <Box />
+        {plotData && <Box plotData={plotData} />}
       </PerspectiveCamera>
     </Canvas>
   );

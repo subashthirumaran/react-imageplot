@@ -1,7 +1,6 @@
 //ts-ignore-file
-import * as THREE from 'three';
 import { FRAGMENT_SHADER, VERTEX_SHADER } from '../constants/shaders';
-import { createElem } from './computation-utils';
+import { getLODCanvas } from './dom-utils';
 
 export const getWebglLimits = function () {
   const gl = document.createElement('canvas').getContext('webgl');
@@ -82,31 +81,6 @@ const getPointScale = (
   return scalar * window.devicePixelRatio * canvasSize.height;
 };
 
-const getCanvas = function (size: number) {
-  var canvas = createElem('canvas', {
-    width: size,
-    height: size,
-    id: 'lod-canvas',
-  }) as HTMLCanvasElement;
-  return {
-    canvas: canvas,
-    ctx: canvas.getContext('2d'),
-    texture: getTexture(canvas),
-  };
-};
-
-const getTexture = function (canvas: HTMLCanvasElement) {
-  var tex = new THREE.Texture(canvas);
-  tex.needsUpdate = true;
-  tex.flipY = false;
-  tex.generateMipmaps = false;
-  tex.magFilter = THREE.LinearFilter;
-  tex.minFilter = THREE.LinearFilter;
-  tex.wrapS = THREE.ClampToEdgeWrapping;
-  tex.wrapT = THREE.ClampToEdgeWrapping;
-  return tex;
-};
-
 export const getShaderMaterial = function (obj: any) {
   const fragment = getFragmentShader(obj);
 
@@ -119,7 +93,7 @@ export const getShaderMaterial = function (obj: any) {
       },
       lodTexture: {
         type: 't',
-        value: getCanvas(obj.sizes.lodTexture).texture,
+        value: getLODCanvas(obj.sizes.lodTexture).texture,
       },
       transitionPercent: {
         type: 'f',

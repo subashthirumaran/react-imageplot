@@ -1,3 +1,5 @@
+import { Texture } from 'three';
+
 export interface ImagePlot {
   sizes: {
     cell: number;
@@ -19,6 +21,7 @@ export interface ImagePlot {
     textureCount: number;
     vShaderTextures: number;
   };
+  grid?: CellGrid;
 }
 
 export interface PlotAtlas {
@@ -50,6 +53,10 @@ export interface PlotCell {
   textureIndex: number;
   indexOfDrawCall: number;
   indexInDrawCall: number;
+  gridPosition: Coordinates2D;
+  atlasOffset: Coordinates2D;
+  atlasPosition: [number, number];
+  thumbnailUrl: string;
 }
 
 export interface Coordinates2D {
@@ -67,4 +74,35 @@ export type Coordinates3D = Coordinates2D & { z: number };
 export interface BoundingBox {
   x: { max: number; min: number };
   y: { max: number; min: number };
+}
+
+export type CellGrid = {
+  [xAxisPosition: string]: { [yAxisPosition: string]: number[] };
+};
+
+interface LoDCanvas {
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D | null;
+  texture: Texture;
+}
+
+export interface LODState {
+  tex: LoDCanvas;
+  cell: LoDCanvas;
+  cellIdxToImage: { [cellIndex: string]: HTMLImageElement };
+  grid: CellGrid;
+  minZ: number;
+  initialRadius: number;
+  state: {
+    camPos: Coordinates2D;
+    openCoords: Coordinates2D[];
+    neighborsRequested: number;
+    gridPosToCoords: {
+      [gridKey: string]: (Coordinates2D & { cellIdx: number })[];
+    }; // map from a x.y grid position to cell indices and tex offsets at that grid position
+    cellIdxToCoords: { [cellIndex: string]: Coordinates2D }; // map from a cell idx to that cell's x, y offsets in lod texture
+    cellsToActivate: number[]; // list of cells cached in cellIdxToImage and ready to be added to lod texture
+    fetchQueue: number[]; // list of images that need to be fetched and cached
+    radius: number; // current radius for LOD
+  };
 }

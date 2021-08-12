@@ -6,6 +6,7 @@ import {
   PlotCell,
   Vector2Dimensions,
 } from '../internal_types';
+import { getTexture } from './dom-utils';
 
 export const DEFAULT_BOUNDING_BOX = (): BoundingBox => ({
   x: { min: Number.POSITIVE_INFINITY, max: Number.NEGATIVE_INFINITY },
@@ -137,10 +138,6 @@ const getTexIndices = function (cells: PlotCell[]) {
   };
 };
 
-/**
- * Get the iterators required to store attribute data for `n` cells
- **/
-
 export const getCellIterators = function (n: number) {
   return {
     translation: new Float32Array(n * 3),
@@ -175,24 +172,79 @@ const getTextures = function (obj: any) {
   return textures;
 };
 
-const getTexture = function (canvas: HTMLCanvasElement) {
-  var tex = new THREE.Texture(canvas);
-  tex.needsUpdate = true;
-  tex.flipY = false;
-  tex.generateMipmaps = false;
-  tex.magFilter = THREE.LinearFilter;
-  tex.minFilter = THREE.LinearFilter;
-  tex.wrapS = THREE.ClampToEdgeWrapping;
-  tex.wrapT = THREE.ClampToEdgeWrapping;
-  return tex;
+export const toGridCoords = (
+  pos: Coordinates2D,
+  domain: BoundingBox,
+  cellsCount: number
+): Coordinates2D => {
+  // determine point's position as percent of each axis size 0:1
+  var percent = {
+    x: (pos.x - domain.x.min) / (domain.x.max - domain.x.min),
+    y: (pos.y - domain.y.min) / (domain.y.max - domain.y.min),
+  };
+  // cut each axis into n buckets per axis and determine point's bucket indices
+  var bucketSize = {
+    x: 1 / Math.max(100, Math.ceil(cellsCount / 100)),
+    y: 1 / Math.max(100, Math.ceil(cellsCount / 100)),
+  };
+  return {
+    x: Math.floor(percent.x / bucketSize.x),
+    y: Math.floor(percent.y / bucketSize.y),
+  };
 };
 
-export const createElem = (tag: string, obj: { [key: string]: any }) => {
-  var obj = obj || {};
-  var elem = document.createElement(tag);
-  Object.keys(obj).forEach(function (attr) {
-    //@ts-expect-error
-    elem[attr] = obj[attr];
-  });
-  return elem;
+export const getNested = (obj: any, keyArr: any[], ifEmpty: any) => {
+  var result = keyArr.reduce(function (o, key) {
+    return o[key] ? o[key] : {};
+  }, obj);
+  return result.length ? result : ifEmpty;
+};
+
+export const inRadius = (
+  radius: number,
+  obj: Coordinates2D,
+  camPos: Coordinates2D
+) => {
+  var xDelta = Math.floor(Math.abs(obj.x - camPos.x)),
+    yDelta = Math.ceil(Math.abs(obj.y - camPos.y));
+  return xDelta <= radius * 1.5 && yDelta < radius;
+};
+
+// update this cell's buffer values for bound attribute `attr`
+export const setBuffer = function (
+  attr: string,
+  meshes: any,
+  indexOfDrawCall: number,
+  indexInDrawCall: number,
+  updateObj: { [key: string]: number }
+) {
+  // find the buffer attributes that describe this cell to the GPU
+  var attrs = meshes.children[indexOfDrawCall].geometry.attributes;
+
+  switch (attr) {
+    case 'textureIndex':
+      // set the texIdx to -1 to read from the uniforms.lodTexture
+      attrs.textureIndex.array[indexInDrawCall] = updateObj.textureIndex;
+      return;
+
+    case 'offset':
+      // set the x then y texture offsets for updateObj cell
+      attrs.offset.array[indexInDrawCall * 2] = updateObj.dx;
+      attrs.offset.array[indexInDrawCall * 2 + 1] = updateObj.dy;
+      return;
+
+    case 'translation':
+      // set the cell's translation
+      attrs.translation.array[indexInDrawCall * 3] = updateObj.x;
+      attrs.translation.array[indexInDrawCall * 3 + 1] = updateObj.y;
+      attrs.translation.array[indexInDrawCall * 3 + 2] = updateObj.z;
+      return;
+
+    case 'targetTranslation':
+      // set the cell's translation
+      attrs.targetTranslation.array[indexInDrawCall * 3] = updateObj.tx;
+      attrs.targetTranslation.array[indexInDrawCall * 3 + 1] = updateObj.ty;
+      attrs.targetTranslation.array[indexInDrawCall * 3 + 2] = updateObj.tz;
+      return;
+  }
 };

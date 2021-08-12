@@ -2,6 +2,7 @@ import { flatten, omit, times } from 'lodash';
 import { BufferAttribute } from 'three';
 import { ImageList, PlotManifest } from '../external_types';
 import {
+  CellGrid,
   ImagePlot,
   PlotAtlas,
   PlotCell,
@@ -10,15 +11,16 @@ import {
 } from '../internal_types';
 import { loadFile } from './api-utils';
 import {
-  createElem,
   DEFAULT_BOUNDING_BOX,
   getAtlasOffset,
   getBoundingBox,
   getGroupAttributes,
+  toGridCoords,
 } from './computation-utils';
+import { createElem } from './dom-utils';
 import { getShaderMaterial, getWebglLimits } from './gl-utils';
 
-const loadBlobToImage = (imageElement: HTMLImageElement, blob: Blob) => {
+export const loadBlobToImage = (imageElement: HTMLImageElement, blob: Blob) => {
   return new Promise((resolve, reject) => {
     imageElement.onload = () => resolve(imageElement);
     imageElement.onerror = reject;
@@ -137,9 +139,13 @@ export const buildPlotData = async () => {
         textureIndex: Math.floor(atlasIndex / imagePlot.atlasesPerTex),
         indexOfDrawCall: Math.floor(globalCellIndex / glLimits.indexedElements),
         indexInDrawCall: globalCellIndex % glLimits.indexedElements,
+        thumbnailUrl: 'output/data/thumbs/' + imageList.images[globalCellIndex],
         width: size[0],
         height: size[1],
         positionIn3d,
+        gridPosition: { x: 0, y: 0 },
+        atlasOffset,
+        atlasPosition,
         texturePosition: {
           x: atlasOffset.x + atlasPosition[0],
           y: atlasOffset.y + atlasPosition[1],
@@ -156,10 +162,27 @@ export const buildPlotData = async () => {
       globalCellIndex++;
     });
   });
+
+  // Forming 2D grid
+  const grid: CellGrid = {};
+  imagePlot.cells.forEach((cell: PlotCell) => {
+    cell.gridPosition = toGridCoords(
+      cell.positionIn3d,
+      imagePlot.boundingBox,
+      imagePlot.cells.length
+    );
+    const { x, y } = cell.gridPosition;
+    if (!grid[x]) grid[x] = {};
+    if (!grid[x][y]) grid[x][y] = [];
+    grid[x][y].push(cell.id);
+  });
+  imagePlot.grid = grid;
+
   imagePlot.center = {
     x: (imagePlot.boundingBox.x.min + imagePlot.boundingBox.x.max) / 2,
     y: (imagePlot.boundingBox.y.min + imagePlot.boundingBox.y.max) / 2,
   };
+
   await loadAtlasImages(imagePlot);
   return imagePlot;
 };
