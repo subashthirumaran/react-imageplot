@@ -166,13 +166,14 @@ function screenToWorldCoords(
   return coords;
 }
 
-const Lasso: FC<any> = ({ meshGroup, enabled, controls }) => {
+const Lasso: FC<any> = ({ enabled, controls }) => {
   const {
     gl: { domElement },
     size,
     camera,
     scene,
   } = useThree();
+  const lassoRef = useRef<any>();
   const lassoState = useRef({
     capturing: false,
     frozen: false,
@@ -180,6 +181,7 @@ const Lasso: FC<any> = ({ meshGroup, enabled, controls }) => {
     points: [],
     mesh: null,
   });
+
   //@ts-expect-error
   const removeMesh = () => scene.remove(lassoState.current.mesh);
 
@@ -270,8 +272,11 @@ const Lasso: FC<any> = ({ meshGroup, enabled, controls }) => {
       //@ts-expect-error
       screenToWorldCoords(offset, size, camera),
     ];
-    draw();
   };
+
+  useEffect(() => {
+    console.log(lassoState.current.points);
+  }, [lassoState.current.points]);
 
   useEffect(() => {
     controls.noPan = true;
@@ -284,8 +289,6 @@ const Lasso: FC<any> = ({ meshGroup, enabled, controls }) => {
       domElement?.removeEventListener('mousemove', onMouseMove);
     };
   }, []);
-
-  return null;
 };
 
 export default Lasso;
