@@ -262,3 +262,36 @@ void main() {
     }
   }
 }`;
+
+export const LASSO_VERTEX_SHADER = `precision highp float;
+
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform vec3 cameraPosition;
+
+attribute vec3 position;
+attribute float length;
+
+varying float vLength;
+
+void main() {
+  vLength = length;
+  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mvPosition;
+}`;
+
+export const LASSO_FRAGMENT_SHADER = `precision highp float;
+
+uniform vec3 cameraPosition;
+uniform bool render;
+uniform float time;
+
+varying float vLength;
+
+void main() {
+  if (!render) discard;
+  float dashSize = 0.01;
+  float gapSize = 0.005;
+  if (mod(vLength + time, dashSize + gapSize) > dashSize) discard;
+  gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
+}`;

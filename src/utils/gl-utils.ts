@@ -1,5 +1,17 @@
 //ts-ignore-file
-import { FRAGMENT_SHADER, VERTEX_SHADER } from '../constants/shaders';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Line,
+  RawShaderMaterial,
+  Vector3,
+} from 'three';
+import {
+  FRAGMENT_SHADER,
+  LASSO_FRAGMENT_SHADER,
+  LASSO_VERTEX_SHADER,
+  VERTEX_SHADER,
+} from '../constants/shaders';
 import { getLODCanvas } from './dom-utils';
 
 export const getWebglLimits = function () {
@@ -101,11 +113,11 @@ export const getShaderMaterial = function (obj: any) {
       },
       scale: {
         type: 'f',
-        value: getPointScale(obj.canvasSize, 0.00625),
+        value: getPointScale(obj.canvasSize, 0.05),
       },
       targetScale: {
         type: 'f',
-        value: getPointScale(obj.canvasSize, 0.00625),
+        value: getPointScale(obj.canvasSize, 0.05),
       },
       useColor: {
         type: 'f',
@@ -152,3 +164,41 @@ export const getShaderMaterial = function (obj: any) {
     fragmentShader: fragment,
   };
 };
+
+export const getLassoMesh = function (lp: any[]) {
+  // create a list of 3d points to draw - the last point closes the loop
+  var points = [];
+  for (var i = 0; i < lp.length; i++) {
+    var p = lp[i];
+    points.push(new Vector3(p.x, p.y, 0));
+  }
+  points.push(points[0]);
+  // transform those points to a polyline
+  var lengths = getCumulativeLengths(points);
+  var geometry = new BufferGeometry().setFromPoints(points);
+  var lengthAttr = new BufferAttribute(new Float32Array(lengths), 1);
+  geometry.setAttribute('length', lengthAttr);
+  var material = new RawShaderMaterial({
+    uniforms: {
+      //@ts-expect-error
+      time: { type: 'float', value: 0 },
+      //@ts-expect-error
+      render: { type: 'bool', value: true },
+    },
+    vertexShader: LASSO_VERTEX_SHADER,
+    fragmentShader: LASSO_FRAGMENT_SHADER,
+  });
+  var mesh = new Line(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+};
+
+function getCumulativeLengths(points: any[]) {
+  var lengths = [];
+  var sum = 0;
+  for (var i = 0; i < points.length; i++) {
+    if (i > 0) sum += points[i].distanceTo(points[i - 1]);
+    lengths[i] = sum;
+  }
+  return lengths;
+}

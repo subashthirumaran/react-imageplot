@@ -283,13 +283,14 @@ const LODMechanism: FC<LODMechanismProps> = ({ plotData, meshGroup }) => {
   });
 
   useEffect(() => {
-    meshGroup.current.children.forEach((mesh: Mesh) => {
-      //@ts-expect-error
-      mesh.material.uniforms.lodTexture = {
-        type: 't',
-        value: lodMeta.current.tex.texture,
-      };
-    });
+    if (meshGroup.current?.children)
+      meshGroup.current.children.forEach((mesh: Mesh) => {
+        //@ts-expect-error
+        mesh.material.uniforms.lodTexture = {
+          type: 't',
+          value: lodMeta.current.tex.texture,
+        };
+      });
   });
 
   return null;

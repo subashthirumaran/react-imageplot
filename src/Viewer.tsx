@@ -1,12 +1,13 @@
 import { PerspectiveCamera, TrackballControls } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { ImagePlot } from './internal_types';
+import Lasso from './Lasso';
 import LODMechanism from './LODMechanism';
 import { buildGroups, buildPlotData } from './utils/plot-utils';
 
-const Box: FC<any> = ({ plotData }) => {
+const ImageMesh: any = ({ plotData, controls }: any) => {
   const { scene, size, camera } = useThree(state => state);
   const [meshes, setMeshes] = useState([]);
   const groupRef = useRef();
@@ -43,6 +44,7 @@ const Box: FC<any> = ({ plotData }) => {
             ))}
           </group>
           <LODMechanism plotData={plotData} meshGroup={groupRef} />
+          <Lasso meshGroup={groupRef} controls={controls} enabled={true} />
         </>
       )}
     </>
@@ -51,6 +53,8 @@ const Box: FC<any> = ({ plotData }) => {
 
 const Viewer = () => {
   const [plotData, setPlotData] = useState<ImagePlot>();
+  const meshGroupRef = useRef<any>();
+  const controlsRef = useRef<any>();
 
   const loadPlot = async () => {
     const plot = await buildPlotData();
@@ -71,14 +75,18 @@ const Viewer = () => {
     >
       <PerspectiveCamera fov={75} near={0.001} far={10}>
         <TrackballControls
+          ref={controlsRef}
           mouseButtons={{
             LEFT: THREE.MOUSE.PAN,
-            //@ts-expect-error
-            MIDDLE: THREE.MOUSE.ZOOM,
+            MIDDLE: THREE.MOUSE.MIDDLE,
             RIGHT: THREE.MOUSE.ROTATE,
           }}
         />
-        {plotData && <Box plotData={plotData} />}
+        {plotData && (
+          <>
+            <ImageMesh plotData={plotData} controls={controlsRef.current} />
+          </>
+        )}
       </PerspectiveCamera>
     </Canvas>
   );
