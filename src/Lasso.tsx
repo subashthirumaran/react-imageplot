@@ -272,14 +272,14 @@ const Lasso: FC<any> = ({ enabled, controls }) => {
       //@ts-expect-error
       screenToWorldCoords(offset, size, camera),
     ];
+    draw();
   };
 
   useEffect(() => {
-    console.log(lassoState.current.points);
-  }, [lassoState.current.points]);
+    if (controls) controls.noPan = true;
+  }, [controls]);
 
   useEffect(() => {
-    controls.noPan = true;
     domElement?.addEventListener('mousedown', onMouseDown);
     domElement?.addEventListener('mouseup', onMouseUp);
     domElement?.addEventListener('mousemove', onMouseMove);
@@ -289,6 +289,8 @@ const Lasso: FC<any> = ({ enabled, controls }) => {
       domElement?.removeEventListener('mousemove', onMouseMove);
     };
   }, []);
+
+  return null;
 };
 
 export default Lasso;
